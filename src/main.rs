@@ -105,11 +105,7 @@ fn make_requirement(req: Vec<&str>) -> Vec<String> {
 }
 
 fn colorize(s: &str, color: u8) -> String {
-    let mut colorized: String = String::new();
-    colorized.push_str(format!("\x1b[{}m", color).as_str());
-    colorized.push_str(s);
-    colorized.push_str("\x1b[m");
-    colorized
+    return format!("\x1b[{}m{}\x1b[m", color, s);
 }
 
 fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
@@ -120,13 +116,13 @@ fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
             println!("{}: \x1b[32m{:>2.1}\x1b[m {:<7} {}", group, unit.unit_num, unit.unit_id, req);
             unitscp.retain(|x| x.unit_name != req);
         } else {
-            println!("{}:  {}         {}", group, colorize("NY", 31), req);
+            println!("{}:  {}         {}", group, colorize("--", 31), req);
         }
     }
     unitscp
 }
 
-fn check(user: User) -> u8 {
+fn check(user: User) -> i32 {
     println!("start checking {}'s graduation possibility", user.units[0].student_name);
 
     let a_req = make_requirement(vec!["主専攻実験A","主専攻実験B","卒業研究A","卒業研究B","専門語学A","専門語学B"]);
@@ -150,7 +146,7 @@ fn check(user: User) -> u8 {
     }
 
     if countn.min(18.0) + countn0 < 36.0 {
-        println!("GBn + GBn0 = {} + {}{}", countn, countn0, colorize(" < 36", 31));
+        println!("{} GBn + GBn0 = {} + {}{}", colorize("fail", 31), countn, countn0, colorize(" < 36", 31));
     } else {
         println!("GBn + GBn0 = {} + {}{}", countn, countn0, colorize(" >= 36", 42));
     }
@@ -177,13 +173,13 @@ fn check(user: User) -> u8 {
     }
 
     if misc < 10.0 {
-        println!("misc = {}{}", misc, colorize(" < 10", 31));
+        println!("{} misc = {}{}", colorize("fail", 31), misc, colorize(" < 10", 31));
     } else if cseng < 2.0 {
-        println!("cseng = {}{}", cseng, colorize(" < 2", 31));
+        println!("{} cseng = {}{}", colorize("fail", 31), cseng, colorize(" < 2", 31));
     } else if ga1 < 8.0 {
-        println!("ga1 = {}{}", ga1, colorize(" < 8", 31));
+        println!("{} ga1 = {}{}", colorize("fail", 31), ga1, colorize(" < 8", 31));
     } else if misc + cseng + ga1 < 24.0 {
-        println!("misc + cseng + gb1 + ga1 = {}{}", misc + cseng + gb1 + ga1, colorize(" < 24", 31));
+        println!("{} misc + cseng + gb1 + ga1 = {}{}", colorize("fail", 31), misc + cseng + gb1 + ga1, colorize(" < 24", 31));
     } else {
         println!("{} misc:{}, CSEng:{}, GB1:{}, GA1{}", colorize("pass", 42), misc, cseng, gb1, ga1);
     }
@@ -218,7 +214,7 @@ fn check(user: User) -> u8 {
     }
 
     if acfnd < 1.0 {
-        println!("acfnd = {}{}", acfnd, colorize(" < 1", 31));
+        println!("{} acfnd = {}{}", colorize("fail", 31), acfnd, colorize(" < 1", 31));
     } else {
         println!("{} acfnd:{}", colorize("pass", 32), acfnd);
     }
@@ -238,13 +234,13 @@ fn check(user: User) -> u8 {
     }
 
     if not_science < 6.0 {
-        println!("not_science = {}{}", not_science, colorize(" < 6", 31));
+        println!("{} not_science = {}{}", colorize("fail", 31), not_science, colorize(" < 6", 31));
     } else {
         println!("{} not_science:{}", colorize("pass", 32), not_science);
     }
 
     if not_science + science.min(4.0) + acfnd + arts.min(4.0) < 11.0 {
-        println!("acfnd + arts + not_science + science = {}{}", not_science + science + acfnd + arts, colorize(" < 11", 31));
+        println!("{} acfnd + arts + not_science + science = {}{}", colorize("fail", 31), not_science + science + acfnd + arts, colorize(" < 11", 31));
     } else {
         println!("{} acfnd:{}, arts:{}, not_science:{}, science:{}", colorize("pass", 32), acfnd, arts, not_science, science);
     }
@@ -261,7 +257,6 @@ fn main() {
     } else {
         let cont: String = fs::read_to_string(&args[1]).unwrap();
         let user = create_user(cont);
-        check(user);
-        std::process::exit(0);
+        std::process::exit(check(user));
     }
 }
