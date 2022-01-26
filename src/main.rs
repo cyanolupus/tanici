@@ -1,7 +1,6 @@
 use std::fs;
 use std::env;
 
-#[derive(Clone)]
 struct Unit {
     student_id: String,
     student_name: String,
@@ -28,6 +27,10 @@ struct User {
 }
 
 fn strec2unit(strec: csv::StringRecord) -> Unit {
+    if strec.len() != 11 {
+        eprintln!("Format error");
+        std::process::exit(1);
+    }
     let student_id = strec[0].to_string();
     let student_name = strec[1].to_string();
     let unit_id = strec[2].to_string();
@@ -149,8 +152,6 @@ fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
 }
 
 fn check(user: User) -> i32 {
-    println!("start checking your graduation possibility");
-
     let a_req = make_requirement(vec!["主専攻実験A","主専攻実験B","卒業研究A","卒業研究B","専門語学A","専門語学B"]);
     let b_req = make_requirement(vec!["線形代数A","線形代数B","微分積分A","微分積分B","情報数学A","専門英語基礎","プログラミング入門","コンピュータとプログラミング","データ構造とアルゴリズム","データ構造とアルゴリズム実験","論理回路","論理回路実験"]);
     let c_req = make_requirement(vec!["フレッシュマン・セミナー","学問への誘い","English Reading Skills I","English Reading Skills II","English Presentation Skills I","English Presentation Skills II","情報リテラシー(講義)","情報リテラシー(演習)","データサイエンス"]);
@@ -221,29 +222,21 @@ fn check(user: User) -> i32 {
 
     let mut pe1: f32 = 0.0;
     let mut pe2: f32 = 0.0;
-    while units.iter().any(|x| &x.unit_id[..1] == "2" && x.grade_num > -2.0) {
-        let unitsbkt2: Vec<Unit> = units.clone();
-        match unitsbkt2.iter().find(|x| &x.unit_id[..1] == "2" && x.grade_num > -2.0) {
-            Some(unit) => {
-                if unit.grade_num < -1.0 {
-                    println!("共通基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
-                } else if unit.grade_num == 0.0 {
-                    println!("共通基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
-                } else {
-                    println!("共通基礎科目: \x1b[32m{:>2.1}\x1b[m {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
-                    if &unit.unit_id[1..2] == "1" {
-                        pe1 += unit.unit_num;
-                    } else if &unit.unit_id[1..2] == "2" {
-                        pe2 += unit.unit_num;
-                    }
-                }
-                units.retain(|x| x.unit_id != unit.unit_id);
-            },
-            None => {
-               std::process::exit(1);
+    for unit in units.iter().filter(|x| &x.unit_id[..1] == "2") {
+        if unit.grade_num < -1.0 {
+            println!("共通基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
+        } else if unit.grade_num == 0.0 {
+            println!("共通基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
+        } else {
+            println!("共通基礎科目: \x1b[32m{:>2.1}\x1b[m {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
+            if &unit.unit_id[1..2] == "1" {
+                pe1 += unit.unit_num;
+            } else if &unit.unit_id[1..2] == "2" {
+                pe2 += unit.unit_num;
             }
         }
     }
+    units.retain(|x| &x.unit_id[..1] != "2");
 
     if pe1 < 1.0 {
         println!("共通基礎科目: {}         基礎体育", colorize("---", 31));
@@ -322,6 +315,7 @@ fn main() {
         match fs::read_to_string(&args[1]) {
             Ok(data) => {
                 let user = create_user(data);
+                println!("start checking your graduation possibility");
                 std::process::exit(check(user));
             },
             Err(e) => {
