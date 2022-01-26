@@ -160,7 +160,7 @@ fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
 }
 
 fn check(user: User) -> i32 {
-    println!("start checking {}'s graduation possibility", user.units_a[0].student_name);
+    println!("start checking your graduation possibility");
 
     let a_req = make_requirement(vec!["主専攻実験A","主専攻実験B","卒業研究A","卒業研究B","専門語学A","専門語学B"]);
     let b_req = make_requirement(vec!["線形代数A","線形代数B","微分積分A","微分積分B","情報数学A","専門英語基礎","プログラミング入門","コンピュータとプログラミング","データ構造とアルゴリズム","データ構造とアルゴリズム実験","論理回路","論理回路実験"]);
@@ -257,9 +257,10 @@ fn check(user: User) -> i32 {
     }
 
     if pe1 < 1.0 {
-        println!("共通基礎科目:  {}         基礎体育", colorize("NY", 31));
-    } else if pe2 < 1.0 {
-        println!("共通基礎科目:  {}         応用体育", colorize("NY", 31));
+        println!("共通基礎科目: {}         基礎体育", colorize("---", 31));
+    }
+    if pe2 < 1.0 {
+        println!("共通基礎科目: {}         応用体育", colorize("---", 31));
     }
 
     let mut acfnd: f32 = 0.0;
@@ -329,8 +330,15 @@ fn main() {
         eprintln!("Usage error: tanici /path/to/file.csv");
         std::process::exit(1);
     } else {
-        let cont: String = fs::read_to_string(&args[1]).unwrap();
-        let user = create_user(cont);
-        std::process::exit(check(user));
+        match fs::read_to_string(&args[1]) {
+            Ok(data) => {
+                let user = create_user(data);
+                std::process::exit(check(user));
+            },
+            Err(e) => {
+                eprintln!("{}", e);
+                std::process::exit(1);
+            }
+        }
     }
 }
