@@ -129,32 +129,21 @@ fn colorize(s: &str, color: u8) -> String {
 fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
     let mut unitscp: Vec<Unit> = units;
     for req in reqs {
-        match unitscp.iter().find(|x| x.unit_name == req) {
-            Some(unit) => {
-                if unit.grade_num < -1.0 {
-                    println!("{}: {} {:<7} {}", group, colorize("WIP", 33), unit.unit_id, req);
-                } else if unit.grade_num == 0.0 {
-                    println!("{}: {} {:<7} {}", group, colorize("-d-", 31), unit.unit_id, req);
-                    unitscp.retain(|x| x.unit_name != req || x.grade_num != 0.0);
-                    match unitscp.iter().find(|x| x.unit_name == req) {
-                        Some(unit) => {
-                            if unit.grade_num < -1.0 {
-                                println!("{}: {} {:<7} {}", group, colorize("WIP", 33), unit.unit_id, req);
-                            } else {
-                                println!("{}: \x1b[32m{:>2.1}\x1b[m {:<7} {}", group, unit.unit_num, unit.unit_id, req);
-                            }
-                        },
-                        None => {},
-                    }
-                } else {
-                    println!("{}: \x1b[32m{:>2.1}\x1b[m {:<7} {}", group, unit.unit_num, unit.unit_id, req);
-                }
-                unitscp.retain(|x| x.unit_name != req);
-            },
-            None => {
-                println!("{}: {}         {}", group, colorize("---", 31), req);
+        let mut existance: bool = false;
+        for unit in unitscp.iter().filter(|x| x.unit_name == req) {
+            if unit.grade_num < -1.0 {
+                println!("{}: {} {:<7} {}", group, colorize("WIP", 33), unit.unit_id, req);
+            } else if unit.grade_num == 0.0 {
+                println!("{}: {} {:<7} {}", group, colorize("-d-", 31), unit.unit_id, req);
+            } else {
+                println!("{}: \x1b[32m{:>2.1}\x1b[m {:<7} {}", group, unit.unit_num, unit.unit_id, req);
             }
+            existance = true;
         }
+        if !existance {
+            println!("{}: {}         {}", group, colorize("---", 31), req);
+        }
+        unitscp.retain(|x| x.unit_name != req);
     }
     unitscp
 }
