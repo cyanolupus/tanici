@@ -129,12 +129,31 @@ fn colorize(s: &str, color: u8) -> String {
 fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
     let mut unitscp: Vec<Unit> = units;
     for req in reqs {
-        if unitscp.iter().any(|x| x.unit_name == req && x.grade_num > -2.0) {
-            let unit = unitscp.iter().find(|x| x.unit_name == req).unwrap();
-            println!("{}: \x1b[32m{:>2.1}\x1b[m {:<7} {}", group, unit.unit_num, unit.unit_id, req);
-            unitscp.retain(|x| x.unit_name != req);
-        } else {
-            println!("{}:  {}         {}", group, colorize("--", 31), req);
+        match unitscp.iter().find(|x| x.unit_name == req) {
+            Some(unit) => {
+                if unit.grade_num < -1.0 {
+                    println!("{}: {} {:<7} {}", group, colorize("WIP", 33), unit.unit_id, req);
+                } else if unit.grade_num == 0.0 {
+                    println!("{}: {} {:<7} {}", group, colorize("-d-", 31), unit.unit_id, req);
+                    unitscp.retain(|x| x.unit_name != req || x.grade_num != 0.0);
+                    match unitscp.iter().find(|x| x.unit_name == req) {
+                        Some(unit) => {
+                            if unit.grade_num < -1.0 {
+                                println!("{}: {} {:<7} {}", group, colorize("WIP", 33), unit.unit_id, req);
+                            } else {
+                                println!("{}: \x1b[32m{:>2.1}\x1b[m {:<7} {}", group, unit.unit_num, unit.unit_id, req);
+                            }
+                        },
+                        None => {},
+                    }
+                } else {
+                    println!("{}: \x1b[32m{:>2.1}\x1b[m {:<7} {}", group, unit.unit_num, unit.unit_id, req);
+                }
+                unitscp.retain(|x| x.unit_name != req);
+            },
+            None => {
+                println!("{}: {}         {}", group, colorize("---", 31), req);
+            }
         }
     }
     unitscp
@@ -152,22 +171,24 @@ fn check(user: User) -> i32 {
     let mut countn: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
-        if unit.grade_num > -2.0 {
+        if unit.grade_num < -1.0 {
+            println!("専門    科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
+        } else if unit.grade_num == 0.0 {
+            println!("専門    科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
+        } else {
             println!("専門    科目: {:>2.1} {:<7} {}", unit.unit_num, unit.unit_id, unit.unit_name);
             if &unit.unit_id[..4] == "GB40" || &unit.unit_id[..4] == "GB30" || &unit.unit_id[..4] == "GB20" {
                 countn0 += unit.unit_num;
             } else {
                 countn += unit.unit_num;
             }
-        } else {
-            println!("専門    科目: {}         {}", colorize("WIP", 33), unit.unit_name);
         }
     }
 
     if countn.min(18.0) + countn0 < 36.0 {
         println!("{} GBn + GBn0 = {} + {}{}", colorize("fail", 31), countn, countn0, colorize(" < 36", 31));
     } else {
-        println!("GBn + GBn0 = {} + {}{}", countn, countn0, colorize(" >= 36", 42));
+        println!("{} GBn:{}, GBn0:{}", colorize("pass", 32), countn, countn0);
     }
 
     units = check_req(user.units_b, b_req, "専門基礎科目");
@@ -177,7 +198,11 @@ fn check(user: User) -> i32 {
     let mut ga1: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
-        if unit.grade_num > -2.0 {
+        if unit.grade_num < -1.0 {
+            println!("専門基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
+        } else if unit.grade_num == 0.0 {
+            println!("専門基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
+        } else {
             println!("専門基礎科目: {:>2.1} {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
             if unit.unit_name == "確率論" || unit.unit_name == "統計学" || unit.unit_name == "数値計算法" || unit.unit_name == "論理と形式化" || unit.unit_name == "電磁気学" || unit.unit_name == "論理システム" || unit.unit_name == "論理システム演習" {
                 misc += unit.unit_num;
@@ -188,8 +213,6 @@ fn check(user: User) -> i32 {
             } else if &unit.unit_name == "Computer Science in English A" || &unit.unit_name == "Computer Science in English B" {
                 cseng += unit.unit_num;
             }
-        } else {
-            println!("専門基礎科目: {}         {}", colorize("WIP", 33), unit.unit_name);
         }
     }
 
@@ -207,32 +230,53 @@ fn check(user: User) -> i32 {
 
     units = check_req(user.units_c, c_req, "共通基礎科目");
 
-    let mut pe: f32 = 0.0;
-    while units.iter().any(|x| x.unit_name.len() > 6 && x.unit_group == "C" && &x.unit_name[6..12] == "体育" && x.grade_num > -2.0) {
+    let mut pe1: f32 = 0.0;
+    let mut pe2: f32 = 0.0;
+    while units.iter().any(|x| &x.unit_id[..1] == "2" && x.grade_num > -2.0) {
         let unitsbkt2: Vec<Unit> = units.clone();
-        let unit = unitsbkt2.iter().find(|x| x.unit_name.len() > 6 && x.unit_group == "C" && &x.unit_name[6..12] == "体育" && x.grade_num > -2.0).unwrap();
-        println!("共通基礎科目: \x1b[32m{:>2.1}\x1b[m {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
-        pe += unit.unit_num;
-        units.retain(|x| x.unit_id != unit.unit_id);
+        match unitsbkt2.iter().find(|x| &x.unit_id[..1] == "2" && x.grade_num > -2.0) {
+            Some(unit) => {
+                if unit.grade_num < -1.0 {
+                    println!("共通基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
+                } else if unit.grade_num == 0.0 {
+                    println!("共通基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
+                } else {
+                    println!("共通基礎科目: \x1b[32m{:>2.1}\x1b[m {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
+                    if &unit.unit_id[1..2] == "1" {
+                        pe1 += unit.unit_num;
+                    } else if &unit.unit_id[1..2] == "2" {
+                        pe2 += unit.unit_num;
+                    }
+                }
+                units.retain(|x| x.unit_id != unit.unit_id);
+            },
+            None => {
+               std::process::exit(1);
+            }
+        }
     }
 
-    if pe < 2.0 {
-        println!("共通基礎科目:  {}         体育", colorize("NY", 31));
+    if pe1 < 1.0 {
+        println!("共通基礎科目:  {}         基礎体育", colorize("NY", 31));
+    } else if pe2 < 1.0 {
+        println!("共通基礎科目:  {}         応用体育", colorize("NY", 31));
     }
 
     let mut acfnd: f32 = 0.0;
     let mut arts: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
-        if unit.grade_num > -2.0 {
+        if unit.grade_num < -1.0 {
+            println!("共通基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
+        } else if unit.grade_num == 0.0 {
+            println!("共通基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
+        } else {
             println!("共通基礎科目: {:>2.1} {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
             if &unit.unit_id[..2] == "12" || &unit.unit_id[..2] == "14" {
                 acfnd += unit.unit_num;
             } else {
                 arts += unit.unit_num;
             }
-        } else {
-            println!("共通基礎科目: {}         {}", colorize("WIP", 33), unit.unit_name);
         }
     }
 
@@ -247,15 +291,17 @@ fn check(user: User) -> i32 {
     let mut not_science: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
-        if unit.grade_num > -2.0 {
+        if unit.grade_num < -1.0 {
+            println!("関連基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
+        } else if unit.grade_num == 0.0 {
+            println!("関連基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
+        } else {
             println!("関連基礎科目: {:>2.1} {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
             if &unit.unit_id[..1] == "E" || &unit.unit_id[..1] == "F" || &unit.unit_id[..2] == "GC" || &unit.unit_id[..2] == "GE" || &unit.unit_id[..1] == "H" {
                 science += unit.unit_num;
             } else {
                 not_science += unit.unit_num;
             }
-        } else {
-            println!("関連基礎科目: {}         {}", colorize("WIP", 33), unit.unit_name);
         }
     }
 
@@ -271,7 +317,9 @@ fn check(user: User) -> i32 {
         println!("{} acfnd:{}, arts:{}, not_science:{}, science:{}", colorize("pass", 32), acfnd, arts, not_science, science);
     }
 
-    println!("gpa: {:>.4}\ngps: {:>.1}\nunits_num: {:>.0}", user.gpa, user.gps, user.units_num);
+    println!("GPA:           {:>.4}", user.gpa);
+    println!("GPΣ:           {:>.1}", user.gps);
+    println!("NumberofUnits: {:>.0}", user.units_num);
     0
 }
 
