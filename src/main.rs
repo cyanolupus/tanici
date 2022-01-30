@@ -1,19 +1,31 @@
 use std::fs;
 use std::env;
+use regex::Regex;
 
 struct Unit {
-    student_id: String,
-    student_name: String,
     unit_id: String,
     unit_name: String,
     unit_num: f32,
-    spring_grade: String,
-    autumn_grade: String,
-    grade: String,
     grade_num: f32,
     unit_group: String,
     year: String,
-    group: String,
+}
+
+impl Unit {
+    fn print(&self, group: &str, is_comp: bool) {
+        let status: String;
+        let sub_group = if is_comp {"必修"} else {"選択"};
+        if self.grade_num < -1.0 {
+            status = "\x1b[33mWIP\x1b[m".to_string()
+        } else if self.grade_num == 0.0 {
+            status = "\x1b[31m-d-\x1b[m".to_string()
+        } else if is_comp {
+            status = format!("\x1b[32m{:>1.1}\x1b[m", self.unit_num);
+        } else {
+            status = format!("{:>1.1}", self.unit_num);
+        }
+        println!("{}/{}: {:3} {:<7} {}({})", group, sub_group, status, self.unit_id, self.unit_name, self.year);
+    }
 }
 
 struct User {
@@ -31,17 +43,11 @@ fn strec2unit(strec: csv::StringRecord) -> Unit {
         eprintln!("Format error");
         std::process::exit(1);
     }
-    let student_id = strec[0].to_string();
-    let student_name = strec[1].to_string();
     let unit_id = strec[2].to_string();
     let unit_name = strec[3].to_string();
     let unit_num = strec[4][1..].parse::<f32>().unwrap();
-    let spring_grade = strec[5].to_string();
-    let autumn_grade = strec[6].to_string();
-    let grade = strec[7].to_string();
     let unit_group = strec[8].to_string();
     let year = strec[9].to_string();
-    let group = strec[10].to_string();
     let grade_num;
 
     if &strec[7] == "A+" {
@@ -61,18 +67,12 @@ fn strec2unit(strec: csv::StringRecord) -> Unit {
     }
 
     Unit {
-        student_id,
-        student_name,
         unit_id,
         unit_name,
         unit_num,
-        spring_grade,
-        autumn_grade,
-        grade,
         grade_num,
         unit_group,
         year,
-        group,
     }
 }
 
@@ -134,17 +134,11 @@ fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
     for req in reqs {
         let mut existance: bool = false;
         for unit in unitscp.iter().filter(|x| x.unit_name == req) {
-            if unit.grade_num < -1.0 {
-                println!("{}: {} {:<7} {}", group, colorize("WIP", 33), unit.unit_id, req);
-            } else if unit.grade_num == 0.0 {
-                println!("{}: {} {:<7} {}", group, colorize("-d-", 31), unit.unit_id, req);
-            } else {
-                println!("{}: \x1b[32m{:>2.1}\x1b[m {:<7} {}", group, unit.unit_num, unit.unit_id, req);
-            }
+            unit.print(group, true);
             existance = true;
         }
         if !existance {
-            println!("{}: {}         {}", group, colorize("---", 31), req);
+            println!("{}/必修: {}         {}", group, colorize("---", 31), req);
         }
         unitscp.retain(|x| x.unit_name != req);
     }
@@ -156,20 +150,16 @@ fn check(user: User) -> i32 {
     let b_req = make_requirement(vec!["線形代数A","線形代数B","微分積分A","微分積分B","情報数学A","専門英語基礎","プログラミング入門","コンピュータとプログラミング","データ構造とアルゴリズム","データ構造とアルゴリズム実験","論理回路","論理回路実験"]);
     let c_req = make_requirement(vec!["フレッシュマン・セミナー","学問への誘い","English Reading Skills I","English Reading Skills II","English Presentation Skills I","English Presentation Skills II","情報リテラシー(講義)","情報リテラシー(演習)","データサイエンス"]);
 
-    let mut units = check_req(user.units_a, a_req, "専門    科目");
+    let mut units = check_req(user.units_a, a_req, "専門    ");
     let mut countn0: f32 = 0.0;
     let mut countn: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
-        if unit.grade_num < -1.0 {
-            println!("専門    科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
-        } else if unit.grade_num == 0.0 {
-            println!("専門    科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
-        } else {
-            println!("専門    科目: {:>2.1} {:<7} {}", unit.unit_num, unit.unit_id, unit.unit_name);
-            if &unit.unit_id[..4] == "GB40" || &unit.unit_id[..4] == "GB30" || &unit.unit_id[..4] == "GB20" {
+        unit.print("専門    ", false);
+        if unit.grade_num > 0.0 {
+            if Regex::new(r"GB(2|3|4)0\d{3}").unwrap().is_match(&unit.unit_id) {
                 countn0 += unit.unit_num;
-            } else {
+            } else if Regex::new(r"(GB(2|3|4)|GA4)\d{4}").unwrap().is_match(&unit.unit_id) {
                 countn += unit.unit_num;
             }
         }
@@ -181,26 +171,22 @@ fn check(user: User) -> i32 {
         println!("{} GBn:{}, GBn0:{}", colorize("pass", 32), countn, countn0);
     }
 
-    units = check_req(user.units_b, b_req, "専門基礎科目");
+    units = check_req(user.units_b, b_req, "専門基礎");
     let mut misc: f32 = 0.0;
     let mut cseng: f32 = 0.0;
     let mut gb1: f32 = 0.0;
     let mut ga1: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
-        if unit.grade_num < -1.0 {
-            println!("専門基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
-        } else if unit.grade_num == 0.0 {
-            println!("専門基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
-        } else {
-            println!("専門基礎科目: {:>2.1} {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
-            if unit.unit_name == "確率論" || unit.unit_name == "統計学" || unit.unit_name == "数値計算法" || unit.unit_name == "論理と形式化" || unit.unit_name == "電磁気学" || unit.unit_name == "論理システム" || unit.unit_name == "論理システム演習" {
+        unit.print("専門基礎", false);
+        if unit.grade_num > 0.0 {
+            if Regex::new(r"確率論|統計学|数値計算法|論理と形式化|電磁気学|論理システム|論理システム演習").unwrap().is_match(&unit.unit_name) {
                 misc += unit.unit_num;
-            }else if &unit.unit_id[..3] == "GB1" {
+            } else if &unit.unit_id[..3] == "GB1" {
                 gb1 += unit.unit_num;
             } else if &unit.unit_id[..3] == "GA1" {
                 ga1 += unit.unit_num;
-            } else if &unit.unit_name == "Computer Science in English A" || &unit.unit_name == "Computer Science in English B" {
+            } else if Regex::new(r"Computer Science in English (A|B)").unwrap().is_match(&unit.unit_name) {
                 cseng += unit.unit_num;
             }
         }
@@ -218,17 +204,13 @@ fn check(user: User) -> i32 {
         println!("{} misc:{}, CSEng:{}, GB1:{}, GA1{}", colorize("pass", 42), misc, cseng, gb1, ga1);
     }
 
-    units = check_req(user.units_c, c_req, "共通基礎科目");
+    units = check_req(user.units_c, c_req, "共通基礎");
 
     let mut pe1: f32 = 0.0;
     let mut pe2: f32 = 0.0;
     for unit in units.iter().filter(|x| &x.unit_id[..1] == "2") {
-        if unit.grade_num < -1.0 {
-            println!("共通基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
-        } else if unit.grade_num == 0.0 {
-            println!("共通基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
-        } else {
-            println!("共通基礎科目: \x1b[32m{:>2.1}\x1b[m {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
+        unit.print("専門基礎", false);
+        if unit.grade_num > 0.0 {
             if &unit.unit_id[1..2] == "1" {
                 pe1 += unit.unit_num;
             } else if &unit.unit_id[1..2] == "2" {
@@ -239,22 +221,18 @@ fn check(user: User) -> i32 {
     units.retain(|x| &x.unit_id[..1] != "2");
 
     if pe1 < 1.0 {
-        println!("共通基礎科目: {}         基礎体育", colorize("---", 31));
+        println!("共通基礎/必修: {}         基礎体育", colorize("---", 31));
     }
     if pe2 < 1.0 {
-        println!("共通基礎科目: {}         応用体育", colorize("---", 31));
+        println!("共通基礎/必修: {}         応用体育", colorize("---", 31));
     }
 
     let mut acfnd: f32 = 0.0;
     let mut arts: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
-        if unit.grade_num < -1.0 {
-            println!("共通基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
-        } else if unit.grade_num == 0.0 {
-            println!("共通基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
-        } else {
-            println!("共通基礎科目: {:>2.1} {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
+        unit.print("共通基礎", false);
+        if unit.grade_num > 0.0 {
             if &unit.unit_id[..2] == "12" || &unit.unit_id[..2] == "14" {
                 acfnd += unit.unit_num;
             } else {
@@ -274,12 +252,8 @@ fn check(user: User) -> i32 {
     let mut not_science: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
-        if unit.grade_num < -1.0 {
-            println!("関連基礎科目: {} {:<7} {}", colorize("WIP", 33), unit.unit_id, unit.unit_name);
-        } else if unit.grade_num == 0.0 {
-            println!("関連基礎科目: {} {:<7} {}", colorize("-d-", 31), unit.unit_id, unit.unit_name);
-        } else {
-            println!("関連基礎科目: {:>2.1} {} {}", unit.unit_num, unit.unit_id, unit.unit_name);
+        unit.print("関連基礎", false);
+        if unit.grade_num > 0.0 {
             if &unit.unit_id[..1] == "E" || &unit.unit_id[..1] == "F" || &unit.unit_id[..2] == "GC" || &unit.unit_id[..2] == "GE" || &unit.unit_id[..1] == "H" {
                 science += unit.unit_num;
             } else {
