@@ -152,14 +152,16 @@ fn check(user: User) -> i32 {
 
     let mut units = check_req(user.units_a, a_req, "専門    ");
     let mut countn0: f32 = 0.0;
+    let n0_reg: Regex = Regex::new(r"GB(2|3|4)0\d{3}").unwrap();
     let mut countn: f32 = 0.0;
+    let n_reg: Regex = Regex::new(r"(GB(2|3|4)|GA4)\d{4}").unwrap();
     while units.len() > 0 {
         let unit = units.pop().unwrap();
         unit.print("専門    ", false);
         if unit.grade_num > 0.0 {
-            if Regex::new(r"GB(2|3|4)0\d{3}").unwrap().is_match(&unit.unit_id) {
+            if n0_reg.is_match(&unit.unit_id) {
                 countn0 += unit.unit_num;
-            } else if Regex::new(r"(GB(2|3|4)|GA4)\d{4}").unwrap().is_match(&unit.unit_id) {
+            } else if n_reg.is_match(&unit.unit_id) {
                 countn += unit.unit_num;
             }
         }
@@ -173,20 +175,22 @@ fn check(user: User) -> i32 {
 
     units = check_req(user.units_b, b_req, "専門基礎");
     let mut misc: f32 = 0.0;
+    let misc_reg: Regex = Regex::new(r"確率論|統計学|数値計算法|論理と形式化|電磁気学|論理システム|論理システム演習").unwrap();
     let mut cseng: f32 = 0.0;
+    let cseng_reg: Regex = Regex::new(r"Computer Science in English (A|B)").unwrap();
     let mut gb1: f32 = 0.0;
     let mut ga1: f32 = 0.0;
     while units.len() > 0 {
         let unit = units.pop().unwrap();
         unit.print("専門基礎", false);
         if unit.grade_num > 0.0 {
-            if Regex::new(r"確率論|統計学|数値計算法|論理と形式化|電磁気学|論理システム|論理システム演習").unwrap().is_match(&unit.unit_name) {
+            if misc_reg.is_match(&unit.unit_name) {
                 misc += unit.unit_num;
             } else if &unit.unit_id[..3] == "GB1" {
                 gb1 += unit.unit_num;
             } else if &unit.unit_id[..3] == "GA1" {
                 ga1 += unit.unit_num;
-            } else if Regex::new(r"Computer Science in English (A|B)").unwrap().is_match(&unit.unit_name) {
+            } else if cseng_reg.is_match(&unit.unit_name) {
                 cseng += unit.unit_num;
             }
         }
