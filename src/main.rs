@@ -15,16 +15,20 @@ impl Unit {
     fn print(&self, group: &str, is_comp: bool) {
         let status: String;
         let sub_group = if is_comp {"必修"} else {"選択"};
+
         if self.grade_num < -1.0 {
-            status = "\x1b[33mWIP\x1b[m".to_string()
+            status = "\x1b[33mWIP\x1b[m".to_string();
         } else if self.grade_num == 0.0 {
-            status = "\x1b[31m-d-\x1b[m".to_string()
-        } else if is_comp {
-            status = format!("\x1b[32m{:>1.1}\x1b[m", self.unit_num);
+            status = "\x1b[31m-d-\x1b[m".to_string();
         } else {
-            status = format!("{:>1.1}", self.unit_num);
+            status = format!("{:1.1}", self.unit_num);
         }
-        println!("{}/{}: {:3} {:<7} {}({})", group, sub_group, status, self.unit_id, self.unit_name, self.year);
+
+        if is_comp {
+            println!("{}/{}: \x1b[32m{:3}\x1b[m {:<7} {}({})", group, sub_group, status, self.unit_id, self.unit_name, self.year);
+        } else {
+            println!("{}/{}: {:3} {:<7} {}({})", group, sub_group, status, self.unit_id, self.unit_name, self.year);
+        }
     }
 }
 
@@ -35,7 +39,6 @@ struct User {
     units_c0: Vec<Unit>,
     gpa: f32,
     gps: f32,
-    units_num: f32,
 }
 
 fn strec2unit(strec: csv::StringRecord) -> Unit {
@@ -113,7 +116,6 @@ fn create_user(csv: String) -> User {
         units_c0: units_c0,
         gpa: gps / unum,
         gps: gps,
-        units_num: unum,
     }
 }
 
@@ -125,10 +127,6 @@ fn make_requirement(req: Vec<&str>) -> Vec<String> {
     reqs
 }
 
-fn colorize(s: &str, color: u8) -> String {
-    return format!("\x1b[{}m{}\x1b[m", color, s);
-}
-
 fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
     let mut unitscp: Vec<Unit> = units;
     for req in reqs {
@@ -138,11 +136,17 @@ fn check_req(units: Vec<Unit>, reqs: Vec<String>, group: &str) -> Vec<Unit> {
             existance = true;
         }
         if !existance {
-            println!("{}/必修: {}         {}", group, colorize("---", 31), req);
+            println!("{}/必修: \x1b[31m---\x1b[m         {}", group, req);
         }
         unitscp.retain(|x| x.unit_name != req);
     }
     unitscp
+}
+
+fn print_cmp(left: f32, right: f32, label: &str) {
+    let fail = "\x1b[31mfail\x1b[m";
+    let pass = "\x1b[32mpass\x1b[m";
+    println!("{}: {:>4}/{:>2}   {}", if left < right {fail} else {pass}, left, right, label);
 }
 
 fn check(user: User) -> i32 {
@@ -165,12 +169,6 @@ fn check(user: User) -> i32 {
                 countn += unit.unit_num;
             }
         }
-    }
-
-    if countn.min(18.0) + countn0 < 36.0 {
-        println!("{} GBn + GBn0 = {} + {}{}", colorize("fail", 31), countn, countn0, colorize(" < 36", 31));
-    } else {
-        println!("{} GBn:{}, GBn0:{}", colorize("pass", 32), countn, countn0);
     }
 
     units = check_req(user.units_b, b_req, "専門基礎");
@@ -196,24 +194,12 @@ fn check(user: User) -> i32 {
         }
     }
 
-    if misc < 10.0 {
-        println!("{} misc = {}{}", colorize("fail", 31), misc, colorize(" < 10", 31));
-    } else if cseng < 2.0 {
-        println!("{} cseng = {}{}", colorize("fail", 31), cseng, colorize(" < 2", 31));
-    } else if ga1 < 8.0 {
-        println!("{} ga1 = {}{}", colorize("fail", 31), ga1, colorize(" < 8", 31));
-    } else if misc + cseng + ga1 < 24.0 {
-        println!("{} misc + cseng + gb1 + ga1 = {}{}", colorize("fail", 31), misc + cseng + gb1 + ga1, colorize(" < 24", 31));
-    } else {
-        println!("{} misc:{}, CSEng:{}, GB1:{}, GA1{}", colorize("pass", 42), misc, cseng, gb1, ga1);
-    }
-
     units = check_req(user.units_c, c_req, "共通基礎");
 
     let mut pe1: f32 = 0.0;
     let mut pe2: f32 = 0.0;
     for unit in units.iter().filter(|x| &x.unit_id[..1] == "2") {
-        unit.print("専門基礎", false);
+        unit.print("共通基礎", true);
         if unit.grade_num > 0.0 {
             if &unit.unit_id[1..2] == "1" {
                 pe1 += unit.unit_num;
@@ -225,10 +211,10 @@ fn check(user: User) -> i32 {
     units.retain(|x| &x.unit_id[..1] != "2");
 
     if pe1 < 1.0 {
-        println!("共通基礎/必修: {}         基礎体育", colorize("---", 31));
+        println!("共通基礎/必修: \x1b[31m---\x1b[m         基礎体育");
     }
     if pe2 < 1.0 {
-        println!("共通基礎/必修: {}         応用体育", colorize("---", 31));
+        println!("共通基礎/必修: \x1b[31m---\x1b[m         応用体育");
     }
 
     let mut acfnd: f32 = 0.0;
@@ -243,12 +229,6 @@ fn check(user: User) -> i32 {
                 arts += unit.unit_num;
             }
         }
-    }
-
-    if acfnd < 1.0 {
-        println!("{} acfnd = {}{}", colorize("fail", 31), acfnd, colorize(" < 1", 31));
-    } else {
-        println!("{} acfnd:{}", colorize("pass", 32), acfnd);
     }
 
     units = user.units_c0;
@@ -266,21 +246,18 @@ fn check(user: User) -> i32 {
         }
     }
 
-    if not_science < 6.0 {
-        println!("{} not_science = {}{}", colorize("fail", 31), not_science, colorize(" < 6", 31));
-    } else {
-        println!("{} not_science:{}", colorize("pass", 32), not_science);
-    }
+    print_cmp(countn0, 18.0,                    "GBn0");
+    print_cmp(countn.min(18.0) + countn0, 36.0, "専門選択");
+    print_cmp(misc, 10.0,                       "確率論,統計学,数値計算法,論理と形式化,電磁気学,論理システム,論理システム演習");
+    print_cmp(cseng, 2.0,                       "Computer Science in English A or B");
+    print_cmp(ga1, 8.0,                         "GA1");
+    print_cmp(misc + cseng + ga1 + gb1, 24.0,   "専門基礎選択");
+    print_cmp(acfnd, 1.0,                       "総合科目 (学士基盤等)");
+    print_cmp(not_science, 6.0,                 "文系科目");
+    print_cmp(not_science + science.min(4.0) + acfnd + arts.min(4.0), 11.0, "基礎選択");
 
-    if not_science + science.min(4.0) + acfnd + arts.min(4.0) < 11.0 {
-        println!("{} acfnd + arts + not_science + science = {}{}", colorize("fail", 31), not_science + science + acfnd + arts, colorize(" < 11", 31));
-    } else {
-        println!("{} acfnd:{}, arts:{}, not_science:{}, science:{}", colorize("pass", 32), acfnd, arts, not_science, science);
-    }
-
-    println!("GPA:           {:>.4}", user.gpa);
-    println!("GPΣ:           {:>.1}", user.gps);
-    println!("NumberofUnits: {:>.0}", user.units_num);
+    println!("GPA: {:>.4}", user.gpa);
+    println!("GPΣ: {:>.1}", user.gps);
     0
 }
 
