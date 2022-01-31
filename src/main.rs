@@ -253,8 +253,12 @@ fn check(user: User) -> i32 {
     print_cmp(ga1, 8.0,                         "GA1");
     print_cmp(misc + cseng + ga1 + gb1, 24.0,   "専門基礎選択");
     print_cmp(acfnd, 1.0,                       "総合科目 (学士基盤等)");
+    let common = acfnd + arts.min(4.0);
+    print_cmp(common, 1.0,                      "共通基礎選択");
     print_cmp(not_science, 6.0,                 "文系科目");
-    print_cmp(not_science + science.min(4.0) + acfnd + arts.min(4.0), 11.0, "基礎選択");
+    let related = not_science + science.min(4.0);
+    print_cmp(related, 6.0,                    "関連基礎選択");
+    print_cmp(common.min(5.0) + related.min(10.0), 11.0, "基礎選択");
 
     println!("GPA: {:>.4}", user.gpa);
     println!("GPΣ: {:>.1}", user.gps);
