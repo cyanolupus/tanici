@@ -35,7 +35,7 @@ impl Requirement {
         }
     }
 
-    fn check(&mut self, unit: &Unit) -> bool{
+    fn check(&self, unit: &Unit) -> bool{
         let name_match = match self.name_reg {
             Some(ref reg) => reg.is_match(&unit.unit_name),
             None => true,
@@ -95,17 +95,20 @@ impl RequirementGroup {
 
     pub fn push_units(&mut self, units: Vec<Unit>) {
         let mut unitscp = units;
-        'loop0: while unitscp.len() > 0 {
+        while unitscp.len() > 0 {
             let unit = unitscp.pop().unwrap();
-            for req in self.reqs.iter_mut() {
-                if req.check(&unit) {
+            match self.reqs.iter_mut().find(|req| req.check(&unit)) {
+                Some(req) => {
                     let sum: &mut f32 = self.sums.entry(req.name.clone()).or_insert(0.0);
                     if unit.grade_num > 0.0 {
                         *sum += unit.unit_num;
                     }
                     req.units.push(unit);
-                    continue 'loop0;
-                }
+                },
+                None => {
+                    println!{"Not found in Requirement"};
+                    unit.print(&self.group_name, false, false);
+                },
             }
         }
     }
