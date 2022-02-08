@@ -1,8 +1,11 @@
 [package]
 name = "tanici"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["cyanolupus <cyanolupus@gmail.com>"]
 edition = "2018"
+license = "MIT"
+repository = "https://github.com/cyanolupus/tanici"
+description = "graduation requirements checker for University of Tsukuba"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
