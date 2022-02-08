@@ -1,0 +1,46 @@
+groups_a:         # 専門科目 (twins上でAと分類される) の配列
+  - name: ex1     # グループ名 後で利用
+    isCp: true    # 必修科目かどうか(である)
+    regtype: name # 検索条件の種類(科目名)
+    reg: ^.*$     # 検索条件(正規表現)
+
+  - name: ex2     # グループ名 後で利用
+    isCp: false   # 必修科目かどうか(でない)
+    regtype: id   # 検索条件の種類(科目番号)
+    reg: ^.{7}$   # 検索条件(正規表現)
+
+groups_b:         # 専門基礎科目 (twins上でBと分類される) の配列
+  - name: ex3
+    isCp: true
+    regtype: name
+    reg: ^.*$
+
+groups_c:         # 共通基礎科目 (twins上でCと分類される) の配列
+  - name: ex4
+    isCp: true
+    regtype: name
+    reg: ^.*$
+
+groups_c0:        # 関連基礎科目 (twins上でC0と分類される) の配列
+  - name: ex5
+    isCp: true
+    regtype: name
+    reg: ^.*$
+
+reqs:             # 満たさなければいけない条件
+  - desc: 説明文   # 説明文(表示される)
+    subreqs:      # 満たさなければいけない条件を再帰的に指定できる
+      - desc: 説明文
+        groups:
+          - name: ex3
+            max: -1.0
+        subreqs:
+        min: 2.0
+        max: 2.0
+    groups:       # 条件に含まれるグループ
+      - name: ex1     # グループ名 上で設定
+        max: 2.0      # 認められる最大単位数 上限がなければ(-1.0)
+      - name: ex2
+        max: -1.0
+    min: 2.0      # 取らなければならない最小単位数
+    max: -1.0     # 認められる最大単位数 上限がなければ(-1.0)
