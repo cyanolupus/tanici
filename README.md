@@ -9,7 +9,7 @@
 $ git clone https://github.com/cyanolupus/tanici
 $ cd tanici
 $ cargo build
-$ target/release/tanici SIR000000000.csv
+$ target/release/tanici SIR000000000.csv -i coins20.yaml
 ```
 
 または
@@ -17,7 +17,7 @@ $ target/release/tanici SIR000000000.csv
 ```shell
 $ git clone https://github.com/cyanolupus/tanici
 $ cd tanici
-$ cargo run SIR000000000.csv
+$ cargo run SIR000000000.csv -i coins20.yaml
 ```
 
 のようにする．

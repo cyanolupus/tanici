@@ -5,11 +5,13 @@ use std::env;
 extern crate clap;
 use clap::{App, Arg};
 
+extern crate yaml_rust;
+use yaml_rust::YamlLoader;
+
 pub mod unit;
-use unit::Unit;
 
 pub mod requirement;
-use requirement::RequirementGroup;
+use requirement::UnitGroupMap;
 
 pub mod user;
 use user::User;
@@ -18,15 +20,6 @@ fn print_cmp(left: f32, right: f32, label: &str) {
     let fail = "\x1b[31mfail\x1b[m";
     let pass = "\x1b[32mpass\x1b[m";
     println!("{}: {:>4}/{:>2}   {}", if left < right {fail} else {pass}, left, right, label);
-}
-
-fn check(units_a: Vec<Unit>, units_b: Vec<Unit>, units_c: Vec<Unit>, units_c0: Vec<Unit>, mut a_reqs: RequirementGroup, mut b_reqs: RequirementGroup, mut c_reqs: RequirementGroup, mut c0_reqs: RequirementGroup,) -> (RequirementGroup, RequirementGroup, RequirementGroup, RequirementGroup) {
-    a_reqs.push_units(units_a);
-    b_reqs.push_units(units_b);
-    c_reqs.push_units(units_c);
-    c0_reqs.push_units(units_c0);
-
-    return (a_reqs, b_reqs, c_reqs, c0_reqs);
 }
 
 fn main() {
@@ -53,13 +46,26 @@ fn main() {
     let csv_path = matches.value_of("csv").unwrap();
     let yaml_path = matches.value_of("requirements").unwrap();
     let verbose: bool = matches.is_present("verbose");
-    let mut a_reqs: RequirementGroup;
-    let mut b_reqs: RequirementGroup;
-    let mut c_reqs: RequirementGroup;
-    let mut c0_reqs: RequirementGroup;
+    let mut groups_a = UnitGroupMap::new("専門    ");
+    let mut groups_b = UnitGroupMap::new("専門基礎");
+    let mut groups_c = UnitGroupMap::new("共通基礎");
+    let mut groups_c0 = UnitGroupMap::new("関連基礎");
     
     match fs::read_to_string(yaml_path) {
-        Ok(data) => (a_reqs, b_reqs, c_reqs, c0_reqs) = RequirementGroup::new_yaml(&data),
+        Ok(data) => {
+            match YamlLoader::load_from_str(&data) {
+                Ok(yaml) => {
+                    groups_a.push_yaml(&yaml, "groups_a");
+                    groups_b.push_yaml(&yaml, "groups_b");
+                    groups_c.push_yaml(&yaml, "groups_c");
+                    groups_c0.push_yaml(&yaml, "groups_c0");
+                },
+                Err(e) => {
+                    eprintln!("{}", e);
+                    std::process::exit(1);
+                }
+            }
+        },
         Err(e) => {
             eprintln!("{}", e);
             std::process::exit(1);
@@ -70,22 +76,25 @@ fn main() {
         Ok(data) => {
             let user = User::new(data);
             println!("start checking your graduation possibility");
-            (a_reqs, b_reqs, c_reqs, c0_reqs) = check(user.units_a, user.units_b, user.units_c, user.units_c0, a_reqs, b_reqs, c_reqs, c0_reqs);
-            a_reqs.print(verbose);
-            b_reqs.print(verbose);
-            c_reqs.print(verbose);
-            c0_reqs.print(verbose);
+            groups_a.push_units(user.units_a);
+            groups_b.push_units(user.units_b);
+            groups_c.push_units(user.units_c);
+            groups_c0.push_units(user.units_c0);
+            groups_a.print(verbose);
+            groups_b.print(verbose);
+            groups_c.print(verbose);
+            groups_c0.print(verbose);
             
-            let n0sum: f32 = *a_reqs.sums.get("gbn0").unwrap_or(&0.0);
-            let nsum: f32 = *a_reqs.sums.get("gbn").unwrap_or(&0.0);
-            let miscsum: f32 = *b_reqs.sums.get("misc").unwrap_or(&0.0);
-            let csengsum: f32 = *b_reqs.sums.get("cseng").unwrap_or(&0.0);
-            let ga1sum: f32 = *b_reqs.sums.get("ga1").unwrap_or(&0.0);
-            let gb1sum: f32 = *b_reqs.sums.get("gb1").unwrap_or(&0.0);
-            let acfndsum: f32 = *c_reqs.sums.get("acfnd").unwrap_or(&0.0);
-            let artsum: f32 = *c_reqs.sums.get("arts").unwrap_or(&0.0);
-            let scisum: f32 = *c0_reqs.sums.get("sci").unwrap_or(&0.0);
-            let nscisum: f32 = *c0_reqs.sums.get("nonsci").unwrap_or(&0.0);
+            let n0sum: f32 = *groups_a.sums.get("gbn0").unwrap_or(&0.0);
+            let nsum: f32 = *groups_a.sums.get("gbn").unwrap_or(&0.0);
+            let miscsum: f32 = *groups_b.sums.get("misc").unwrap_or(&0.0);
+            let csengsum: f32 = *groups_b.sums.get("cseng").unwrap_or(&0.0);
+            let ga1sum: f32 = *groups_b.sums.get("ga1").unwrap_or(&0.0);
+            let gb1sum: f32 = *groups_b.sums.get("gb1").unwrap_or(&0.0);
+            let acfndsum: f32 = *groups_c.sums.get("acfnd").unwrap_or(&0.0);
+            let artsum: f32 = *groups_c.sums.get("arts").unwrap_or(&0.0);
+            let scisum: f32 = *groups_c0.sums.get("sci").unwrap_or(&0.0);
+            let nscisum: f32 = *groups_c0.sums.get("nonsci").unwrap_or(&0.0);
 
             let spec = nsum.min(18.0) + n0sum;
             let specf = miscsum + csengsum + ga1sum + gb1sum;

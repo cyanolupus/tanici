@@ -1,4 +1,4 @@
-a_reqs:
+groups_a:
   - name: 主専攻実験A
     isCp: true
     regtype: name
@@ -38,7 +38,7 @@ a_reqs:
     isCp: false
     regtype: none
 
-b_reqs:
+groups_b:
   - name: 線形代数A
     isCp: true
     regtype: name
@@ -119,7 +119,7 @@ b_reqs:
     regtype: id
     reg: ^GB1.{4}$
 
-c_reqs:
+groups_c:
   - name: フレッシュマン・セミナー
     isCp: true
     regtype: name
@@ -184,7 +184,7 @@ c_reqs:
     isCp: false
     regtype: none
 
-c0_reqs:
+groups_c0:
   - name: sci
     isCp: false
     regtype: id
@@ -196,7 +196,77 @@ c0_reqs:
     
 checklist:
   - desc: GBn0
-    names:
-      - n0
+    reqs:
+      - name: gbn0
+        max: -1.0
     min: 18.0
-    max: -1.0
+
+  - desc: 専門選択
+    reqs:
+      - name: gbn
+        max: 18.0
+      - name: gbn0
+        max: -1.0
+    min: 36.0
+
+  - desc: 確率論,統計学,数値計算法,論理と形式化,電磁気学,論理システム,論理システム演習
+    reqs:
+      - name: misc
+        max: -1.0
+    min: 10.0
+
+  - desc: Computer Science in English A or B
+    reqs:
+      - name: cseng
+        max: -1.0
+    min: 2.0
+
+  - desc: GA1
+    reqs:
+      - name: ga1
+        max: -1.0
+    min: 8.0
+
+  - desc: 専門基礎選択
+    reqs:
+      - name: misc
+        max: -1.0
+      - name: cseng
+        max: -1.0
+      - name: ga1
+        max: -1.0
+      - name: gb1
+        max: -1.0
+    min: 24.0
+  
+  - desc: 総合科目 (学士基盤等)
+    reqs:
+      - name: acfnd
+        max: -1.0
+    min: 1.0
+
+  - desc: 共通基礎選択
+    reqs:
+      - name: acfnd
+        max: -1.0
+      - name: arts
+        max: 4.0
+    min: 1.0
+
+  - desc: 文系科目
+    reqs:
+      - name: nonsci
+        max: -1.0
+    min: 6.0
+
+  - desc: 関連基礎選択
+    reqs:
+      - name: nonsci
+        max: -1.0
+      - name: sci
+        max: 4.0
+    min: 6.0
+
+  - desc: 基礎選択
+    reqs:
+      - name: 
