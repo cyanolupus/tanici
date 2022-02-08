@@ -1,0 +1,202 @@
+a_reqs:
+  - name: 主専攻実験A
+    isCp: true
+    regtype: name
+    reg: 主専攻実験A$
+
+  - name: 主専攻実験B
+    isCp: true
+    regtype: name
+    reg: 主専攻実験B$
+
+  - name: 卒業研究A
+    isCp: true
+    regtype: name
+    reg: ^卒業研究A$
+
+  - name: 卒業研究B
+    isCp: true
+    regtype: name
+    reg: ^卒業研究B$
+
+  - name: 専門語学A
+    isCp: true
+    regtype: name
+    reg: ^専門語学A$
+
+  - name: 専門語学B
+    isCp: true
+    regtype: name
+    reg: ^専門語学B$
+
+  - name: gbn0
+    isCp: false
+    regtype: id
+    reg: ^GB(2|3|4)0.{3}$
+
+  - name: gbn
+    isCp: false
+    regtype: none
+
+b_reqs:
+  - name: 線形代数A
+    isCp: true
+    regtype: name
+    reg: ^線形代数A$
+
+  - name: 線形代数B
+    isCp: true
+    regtype: name
+    reg: ^線形代数B$
+
+  - name: 微分積分A
+    isCp: true
+    regtype: name
+    reg: ^微分積分A$
+
+  - name: 微分積分B
+    isCp: true
+    regtype: name
+    reg: ^微分積分B$
+
+  - name: 情報数学A
+    isCp: true
+    regtype: name
+    reg: ^情報数学A$
+
+  - name: 専門英語基礎
+    isCp: true
+    regtype: name
+    reg: ^専門英語基礎$
+
+  - name: プログラミング入門
+    isCp: true
+    regtype: name
+    reg: ^プログラミング入門$
+
+  - name: コンピュータとプログラミング
+    isCp: true
+    regtype: name
+    reg: ^コンピュータとプログラミング$
+
+  - name: データ構造とアルゴリズム
+    isCp: true
+    regtype: name
+    reg: ^データ構造とアルゴリズム$
+
+  - name: データ構造とアルゴリズム実験
+    isCp: true
+    regtype: name
+    reg: ^データ構造とアルゴリズム実験$
+
+  - name: 論理回路
+    isCp: true
+    regtype: name
+    reg: ^論理回路$
+
+  - name: 論理回路実験
+    isCp: true
+    regtype: name
+    reg: ^論理回路実験$
+
+  - name: misc
+    isCp: false
+    regtype: name
+    reg: ^(確率論|統計学|数値計算法|論理と形式化|電磁気学|論理システム|論理システム演習)$
+
+  - name: cseng
+    isCp: false
+    regtype: name
+    reg: ^(Computer Science in English (A|B))$
+
+  - name: ga1
+    isCp: false
+    regtype: id
+    reg: ^GA1.{4}$
+
+  - name: gb1
+    isCp: false
+    regtype: id
+    reg: ^GB1.{4}$
+
+c_reqs:
+  - name: フレッシュマン・セミナー
+    isCp: true
+    regtype: name
+    reg: ^フレッシュマン・セミナー$
+
+  - name: 学問への誘い
+    isCp: true
+    regtype: name
+    reg: ^学問への誘い$
+
+  - name: English Reading Skills I
+    isCp: true
+    regtype: name
+    reg: ^English Reading Skills I$
+
+  - name: English Reading Skills II
+    isCp: true
+    regtype: name
+    reg: ^English Reading Skills II$
+
+  - name: English Presentation Skills I
+    isCp: true
+    regtype: name
+    reg: ^English Presentation Skills I$
+
+  - name: English Presentation Skills II
+    isCp: true
+    regtype: name
+    reg: ^English Presentation Skills II$
+
+  - name: 情報リテラシー\\(講義\\)
+    isCp: true
+    regtype: name
+    reg: ^情報リテラシー\\(講義\\)$
+
+  - name: 情報リテラシー\\(演習\\)
+    isCp: true
+    regtype: name
+    reg: ^情報リテラシー\\(演習\\)$
+
+  - name: データサイエンス
+    isCp: true
+    regtype: name
+    reg: ^データサイエンス$
+
+  - name: pe1
+    isCp: true
+    regtype: id
+    reg: ^21.{5}$
+
+  - name: pe2
+    isCp: true
+    regtype: id
+    reg: ^22.{5}$
+
+  - name: acfnd
+    isCp: false
+    regtype: id
+    reg: ^(12|14).{5}$
+
+  - name: arts
+    isCp: false
+    regtype: none
+
+c0_reqs:
+  - name: sci
+    isCp: false
+    regtype: id
+    reg: ^(E|F|H).|G(C|E).{5}$
+
+  - name: nonsci
+    isCp: false
+    regtype: none
+    
+checklist:
+  - desc: GBn0
+    names:
+      - n0
+    min: 18.0
+    max: -1.0

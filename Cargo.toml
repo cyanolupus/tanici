@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 csv = "1.1"
 regex = "1"
+clap = "2"
+yaml-rust = "0.4"
