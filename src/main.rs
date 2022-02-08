@@ -10,8 +10,8 @@ use yaml_rust::YamlLoader;
 
 pub mod unit;
 
-pub mod requirement;
-use requirement::UnitGroupMap;
+pub mod unitgroup;
+use unitgroup::UnitGroupMap;
 
 pub mod user;
 use user::User;
