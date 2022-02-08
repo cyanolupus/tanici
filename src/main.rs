@@ -3,13 +3,12 @@ use std::env;
 
 #[macro_use]
 extern crate clap;
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg};
 
 pub mod unit;
 use unit::Unit;
 
 pub mod requirement;
-use requirement::Requirement;
 use requirement::RequirementGroup;
 
 pub mod user;
@@ -60,7 +59,7 @@ fn main() {
     let mut c0_reqs: RequirementGroup;
     
     match fs::read_to_string(yaml_path) {
-        Ok(data) => (a_reqs, b_reqs, c_reqs, c0_reqs) = RequirementGroup::yaml2reqs(&data),
+        Ok(data) => (a_reqs, b_reqs, c_reqs, c0_reqs) = RequirementGroup::new_yaml(&data),
         Err(e) => {
             eprintln!("{}", e);
             std::process::exit(1);
@@ -77,8 +76,8 @@ fn main() {
             c_reqs.print(verbose);
             c0_reqs.print(verbose);
             
-            let n0sum: f32 = *a_reqs.sums.get("n0").unwrap_or(&0.0);
-            let nsum: f32 = *a_reqs.sums.get("n").unwrap_or(&0.0);
+            let n0sum: f32 = *a_reqs.sums.get("gbn0").unwrap_or(&0.0);
+            let nsum: f32 = *a_reqs.sums.get("gbn").unwrap_or(&0.0);
             let miscsum: f32 = *b_reqs.sums.get("misc").unwrap_or(&0.0);
             let csengsum: f32 = *b_reqs.sums.get("cseng").unwrap_or(&0.0);
             let ga1sum: f32 = *b_reqs.sums.get("ga1").unwrap_or(&0.0);
@@ -86,7 +85,7 @@ fn main() {
             let acfndsum: f32 = *c_reqs.sums.get("acfnd").unwrap_or(&0.0);
             let artsum: f32 = *c_reqs.sums.get("arts").unwrap_or(&0.0);
             let scisum: f32 = *c0_reqs.sums.get("sci").unwrap_or(&0.0);
-            let nscisum: f32 = *c0_reqs.sums.get("nsci").unwrap_or(&0.0);
+            let nscisum: f32 = *c0_reqs.sums.get("nonsci").unwrap_or(&0.0);
 
             let spec = nsum.min(18.0) + n0sum;
             let specf = miscsum + csengsum + ga1sum + gb1sum;

@@ -150,15 +150,15 @@ c_reqs:
     regtype: name
     reg: ^English Presentation Skills II$
 
-  - name: 情報リテラシー\\(講義\\)
+  - name: 情報リテラシー(講義)
     isCp: true
     regtype: name
-    reg: ^情報リテラシー\\(講義\\)$
+    reg: ^情報リテラシー\(講義\)$
 
-  - name: 情報リテラシー\\(演習\\)
+  - name: 情報リテラシー(演習)
     isCp: true
     regtype: name
-    reg: ^情報リテラシー\\(演習\\)$
+    reg: ^情報リテラシー\(演習\)$
 
   - name: データサイエンス
     isCp: true

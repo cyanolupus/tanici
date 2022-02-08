@@ -3,7 +3,7 @@ use super::unit::Unit;
 use std::collections::HashMap;
 
 extern crate yaml_rust;
-use yaml_rust::{YamlLoader, YamlEmitter};
+use yaml_rust::{YamlLoader, Yaml};
 
 pub struct Requirement {
     name: String,
@@ -14,7 +14,7 @@ pub struct Requirement {
 }
 
 impl Requirement {
-    pub fn req_name(name: &str, reg: &str, is_comp: bool) -> Self {
+    fn req_name(name: &str, reg: &str, is_comp: bool) -> Self {
         let name_reg = Regex::new(reg).unwrap();
         let units: Vec<Unit> = Vec::new();
         Requirement {
@@ -26,7 +26,7 @@ impl Requirement {
         }
     }
 
-    pub fn req_id(name: &str, id: &str, is_comp: bool) -> Self {
+    fn req_id(name: &str, id: &str, is_comp: bool) -> Self {
         let id_reg = Regex::new(id).unwrap();
         let units: Vec<Unit> = Vec::new();
         Requirement {
@@ -38,7 +38,7 @@ impl Requirement {
         }
     }
 
-    pub fn req_none(name: &str, is_comp: bool) -> Self {
+    fn req_none(name: &str, is_comp: bool) -> Self {
         let units: Vec<Unit> = Vec::new();
         Requirement {
             name: name.to_string(),
@@ -92,114 +92,43 @@ impl RequirementGroup {
         }
     }
 
-    fn add_req(&mut self, req: Requirement) {
-        self.sums.insert(req.name.clone(), 0.0);
-        self.reqs.push(req);
+    fn push_yaml(&mut self, yamlvec: &Vec<Yaml>) {
+        for yaml in yamlvec.iter() {
+            let name = yaml["name"].as_str().unwrap();
+            let is_comp = yaml["isCp"].as_bool().unwrap();
+            match yaml["regtype"].as_str() {
+                Some("name") => {
+                    let reg = yaml["reg"].as_str().unwrap();
+                    let req = Requirement::req_name(name, reg, is_comp);
+                    self.reqs.push(req);
+                }
+                Some("id") => {
+                    let reg = yaml["reg"].as_str().unwrap();
+                    let req = Requirement::req_id(name, reg, is_comp);
+                    self.reqs.push(req);
+                }
+                Some("none") => {
+                    let req = Requirement::req_none(name, is_comp);
+                    self.reqs.push(req);
+                }
+                _ => {
+                    println!("error");
+                }
+            }
+        }
     }
 
-    pub fn yaml2reqs(yaml: &str) -> (Self, Self, Self, Self) {
+    pub fn new_yaml(yaml: &str) -> (Self, Self, Self, Self) {
         match YamlLoader::load_from_str(yaml) {
             Ok(yaml) => {
-                let mut yaml_vec = &yaml[0]["a_reqs"];
                 let mut a_reqs: RequirementGroup = RequirementGroup::new("専門    ");
-                for req in yaml_vec.as_vec().unwrap() {
-                    let name = req["name"].as_str().unwrap();
-                    let is_comp = req["isCp"].as_bool().unwrap();
-                    let reg = req["reg"].as_str().unwrap();
-                    match req["regtype"].as_str() {
-                        Some("name") => {
-                            let req2 = Requirement::req_name(name, reg, is_comp);
-                            a_reqs.reqs.push(req2);
-                        }
-                        Some("id") => {
-                            let req2 = Requirement::req_id(name, reg, is_comp);
-                            a_reqs.reqs.push(req2);
-                        }
-                        Some("none") => {
-                            let req2 = Requirement::req_none(name, is_comp);
-                            a_reqs.reqs.push(req2);
-                        }
-                        _ => {
-                            println!("error");
-                        }
-                    }
-                }
-
-                let mut yaml_vec = &yaml[0]["b_reqs"];
+                a_reqs.push_yaml(&yaml[0]["a_reqs"].as_vec().unwrap());
                 let mut b_reqs: RequirementGroup = RequirementGroup::new("専門基礎");
-                for req in yaml_vec["b_reqs"] {
-                    let name = req["name"].as_str().unwrap();
-                    let is_comp = req["isCp"].as_bool().unwrap();
-                    let reg = req["reg"].as_str().unwrap();
-                    match req["regtype"].as_str() {
-                        Some("name") => {
-                            let req2 = Requirement::req_name(name, reg, is_comp);
-                            b_reqs.reqs.push(req2);
-                        }
-                        Some("id") => {
-                            let req2 = Requirement::req_id(name, reg, is_comp);
-                            b_reqs.reqs.push(req2);
-                        }
-                        Some("none") => {
-                            let req2 = Requirement::req_none(name, is_comp);
-                            b_reqs.reqs.push(req2);
-                        }
-                        _ => {
-                            println!("error");
-                        }
-                    }
-                }
-                
-                let mut yaml_vec = &yaml[0]["c_reqs"];
+                b_reqs.push_yaml(&yaml[0]["b_reqs"].as_vec().unwrap());
                 let mut c_reqs: RequirementGroup = RequirementGroup::new("共通基礎");
-                for req in yaml_vec["c_reqs"] {
-                    let name = req["name"].as_str().unwrap();
-                    let is_comp = req["isCp"].as_bool().unwrap();
-                    let reg = req["reg"].as_str().unwrap();
-                    match req["regtype"].as_str() {
-                        Some("name") => {
-                            let req2 = Requirement::req_name(name, reg, is_comp);
-                            c_reqs.reqs.push(req2);
-                        }
-                        Some("id") => {
-                            let req2 = Requirement::req_id(name, reg, is_comp);
-                            c_reqs.reqs.push(req2);
-                        }
-                        Some("none") => {
-                            let req2 = Requirement::req_none(name, is_comp);
-                            c_reqs.reqs.push(req2);
-                        }
-                        _ => {
-                            println!("error");
-                        }
-                    }
-                }
-                
-                let mut yaml_vec = &yaml[0]["c0_reqs"];
+                c_reqs.push_yaml(&yaml[0]["c_reqs"].as_vec().unwrap());
                 let mut c0_reqs: RequirementGroup = RequirementGroup::new("関連基礎");
-                for req in yaml_vec["c0_reqs"] {
-                    let name = req["name"].as_str().unwrap();
-                    let is_comp = req["isCp"].as_bool().unwrap();
-                    let reg = req["reg"].as_str().unwrap();
-                    match req["regtype"].as_str() {
-                        Some("name") => {
-                            let req2 = Requirement::req_name(name, reg, is_comp);
-                            c0_reqs.reqs.push(req2);
-                        }
-                        Some("id") => {
-                            let req2 = Requirement::req_id(name, reg, is_comp);
-                            c0_reqs.reqs.push(req2);
-                        }
-                        Some("none") => {
-                            let req2 = Requirement::req_none(name, is_comp);
-                            c0_reqs.reqs.push(req2);
-                        }
-                        _ => {
-                            println!("error");
-                        }
-                    }
-                }
-                
+                c0_reqs.push_yaml(&yaml[0]["c0_reqs"].as_vec().unwrap());
                 return (a_reqs, b_reqs, c_reqs, c0_reqs);
             }
             Err(e) => {
