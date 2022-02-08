@@ -94,7 +94,7 @@ fn main() {
             sums.extend(groups_c0.sums);
 
             for req in reqs {
-                req.check_req(&sums, verbose);
+                req.check_req(&sums);
             }
 
             println!("GPA: {:>.4}", user.gpa);
