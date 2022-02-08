@@ -14,7 +14,7 @@ pub struct UnitGroup {
 }
 
 impl UnitGroup {
-    fn req_name(name: &str, reg: &str, is_comp: bool) -> Self {
+    fn group_name(name: &str, reg: &str, is_comp: bool) -> Self {
         let name_reg = Regex::new(reg).unwrap();
         let units: Vec<Unit> = Vec::new();
         UnitGroup {
@@ -26,7 +26,7 @@ impl UnitGroup {
         }
     }
 
-    fn req_id(name: &str, id: &str, is_comp: bool) -> Self {
+    fn group_id(name: &str, id: &str, is_comp: bool) -> Self {
         let id_reg = Regex::new(id).unwrap();
         let units: Vec<Unit> = Vec::new();
         UnitGroup {
@@ -38,7 +38,7 @@ impl UnitGroup {
         }
     }
 
-    fn req_none(name: &str, is_comp: bool) -> Self {
+    fn group_none(name: &str, is_comp: bool) -> Self {
         let units: Vec<Unit> = Vec::new();
         UnitGroup {
             name: name.to_string(),
@@ -78,17 +78,17 @@ impl UnitGroup {
 
 pub struct UnitGroupMap {
     group_name: String,
-    reqs: Vec<UnitGroup>,
+    groups: Vec<UnitGroup>,
     pub sums: HashMap<String, f32>,
 }
 
 impl UnitGroupMap {
     pub fn new(group_name: &str) -> Self {
-        let reqs: Vec<UnitGroup> = Vec::new();
+        let groups: Vec<UnitGroup> = Vec::new();
         let sums: HashMap<String, f32> = HashMap::new();
         UnitGroupMap {
             group_name: group_name.to_string(),
-            reqs,
+            groups,
             sums,
         }
     }
@@ -102,17 +102,17 @@ impl UnitGroupMap {
                     match group["regtype"].as_str() {
                         Some("name") => {
                             let reg = group["reg"].as_str().unwrap();
-                            let req = UnitGroup::req_name(name, reg, is_comp);
-                            self.reqs.push(req);
+                            let req = UnitGroup::group_name(name, reg, is_comp);
+                            self.groups.push(req);
                         }
                         Some("id") => {
                             let reg = group["reg"].as_str().unwrap();
-                            let req = UnitGroup::req_id(name, reg, is_comp);
-                            self.reqs.push(req);
+                            let req = UnitGroup::group_id(name, reg, is_comp);
+                            self.groups.push(req);
                         }
                         Some("none") => {
-                            let req = UnitGroup::req_none(name, is_comp);
-                            self.reqs.push(req);
+                            let req = UnitGroup::group_none(name, is_comp);
+                            self.groups.push(req);
                         }
                         _ => {
                             println!("error");
@@ -128,7 +128,7 @@ impl UnitGroupMap {
         let mut unitscp = units;
         while unitscp.len() > 0 {
             let unit = unitscp.pop().unwrap();
-            match self.reqs.iter_mut().find(|req| req.check(&unit)) {
+            match self.groups.iter_mut().find(|req| req.check(&unit)) {
                 Some(req) => {
                     let sum: &mut f32 = self.sums.entry(req.name.clone()).or_insert(0.0);
                     if unit.grade_num > 0.0 {
@@ -145,7 +145,7 @@ impl UnitGroupMap {
     }
 
     pub fn print(&self, verbose: bool) {
-        for req in self.reqs.iter() {
+        for req in self.groups.iter() {
             req.print_units(&self.group_name, verbose);
         }
     }

@@ -1,5 +1,6 @@
 use std::fs;
 use std::env;
+use std::collections::HashMap;
 
 #[macro_use]
 extern crate clap;
@@ -13,14 +14,11 @@ pub mod unit;
 pub mod unitgroup;
 use unitgroup::UnitGroupMap;
 
+pub mod require;
+use require::Req;
+
 pub mod user;
 use user::User;
-
-fn print_cmp(left: f32, right: f32, label: &str) {
-    let fail = "\x1b[31mfail\x1b[m";
-    let pass = "\x1b[32mpass\x1b[m";
-    println!("{}: {:>4}/{:>2}   {}", if left < right {fail} else {pass}, left, right, label);
-}
 
 fn main() {
     let app = App::new(crate_name!())
@@ -50,6 +48,8 @@ fn main() {
     let mut groups_b = UnitGroupMap::new("専門基礎");
     let mut groups_c = UnitGroupMap::new("共通基礎");
     let mut groups_c0 = UnitGroupMap::new("関連基礎");
+    let reqs: Vec<Req>;
+    let mut sums: HashMap<String, f32> = HashMap::new();
     
     match fs::read_to_string(yaml_path) {
         Ok(data) => {
@@ -59,6 +59,10 @@ fn main() {
                     groups_b.push_yaml(&yaml, "groups_b");
                     groups_c.push_yaml(&yaml, "groups_c");
                     groups_c0.push_yaml(&yaml, "groups_c0");
+                    reqs = match Req::reqs_yaml(&yaml) {
+                        Some(reqs) => reqs,
+                        None => Vec::new(),
+                    }
                 },
                 Err(e) => {
                     eprintln!("{}", e);
@@ -84,34 +88,14 @@ fn main() {
             groups_b.print(verbose);
             groups_c.print(verbose);
             groups_c0.print(verbose);
-            
-            let n0sum: f32 = *groups_a.sums.get("gbn0").unwrap_or(&0.0);
-            let nsum: f32 = *groups_a.sums.get("gbn").unwrap_or(&0.0);
-            let miscsum: f32 = *groups_b.sums.get("misc").unwrap_or(&0.0);
-            let csengsum: f32 = *groups_b.sums.get("cseng").unwrap_or(&0.0);
-            let ga1sum: f32 = *groups_b.sums.get("ga1").unwrap_or(&0.0);
-            let gb1sum: f32 = *groups_b.sums.get("gb1").unwrap_or(&0.0);
-            let acfndsum: f32 = *groups_c.sums.get("acfnd").unwrap_or(&0.0);
-            let artsum: f32 = *groups_c.sums.get("arts").unwrap_or(&0.0);
-            let scisum: f32 = *groups_c0.sums.get("sci").unwrap_or(&0.0);
-            let nscisum: f32 = *groups_c0.sums.get("nonsci").unwrap_or(&0.0);
+            sums.extend(groups_a.sums);
+            sums.extend(groups_b.sums);
+            sums.extend(groups_c.sums);
+            sums.extend(groups_c0.sums);
 
-            let spec = nsum.min(18.0) + n0sum;
-            let specf = miscsum + csengsum + ga1sum + gb1sum;
-            let common = acfndsum + artsum.min(4.0);
-            let related = nscisum + scisum.min(4.0);
-
-            print_cmp(n0sum, 18.0,     "GBn0");
-            print_cmp(spec, 36.0,      "専門選択");
-            print_cmp(miscsum, 10.0,   "確率論,統計学,数値計算法,論理と形式化,電磁気学,論理システム,論理システム演習");
-            print_cmp(csengsum, 2.0,   "Computer Science in English A or B");
-            print_cmp(ga1sum, 8.0,     "GA1");
-            print_cmp(specf, 24.0,     "専門基礎選択");
-            print_cmp(acfndsum, 1.0,   "総合科目 (学士基盤等)");
-            print_cmp(common, 1.0,     "共通基礎選択");
-            print_cmp(nscisum, 6.0,    "文系科目");
-            print_cmp(related, 6.0,    "関連基礎選択");
-            print_cmp(common.min(5.0) + related.min(10.0), 11.0, "基礎選択");
+            for req in reqs {
+                req.check_req(&sums, verbose);
+            }
 
             println!("GPA: {:>.4}", user.gpa);
             println!("GPΣ: {:>.1}", user.gps);
