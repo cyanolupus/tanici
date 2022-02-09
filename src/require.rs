@@ -15,8 +15,17 @@ impl Req {
     fn recu_load(reqs_yaml: &Vec<Yaml>) -> Option<Vec<Req>> {
         let mut reqs: Vec<Req> = Vec::new();
         for req_yaml in reqs_yaml.iter() {
-            let desc = req_yaml["desc"].as_str().unwrap();
-            let min = req_yaml["min"].as_f64().unwrap();
+            let desc = match req_yaml["desc"].as_str() {
+                Some(desc) => desc.to_string(),
+                None => {
+                    eprintln!("Error: no desc in req");
+                    std::process::exit(1);
+                }
+            };
+            let min = match req_yaml["min"].as_f64() {
+                Some(v) => v,
+                None => 0.0,
+            };
             let max = match req_yaml["max"].as_f64() {
                 Some(v) => v,
                 None => -1.0,
@@ -29,8 +38,17 @@ impl Req {
             match req_yaml["groups"].as_vec() {
                 Some(groups_yaml) => {
                     for group_yaml in groups_yaml.iter() {
-                        let name = group_yaml["name"].as_str().unwrap();
-                        let max = group_yaml["max"].as_f64().unwrap();
+                        let name = match group_yaml["name"].as_str() {
+                            Some(name) => name.to_string(),
+                            None => {
+                                eprintln!("Error: no name in group");
+                                std::process::exit(1);
+                            }
+                        };
+                        let max = match group_yaml["max"].as_f64() {
+                            Some(v) => v,
+                            None => -1.0,
+                        };
                         groups.insert(name.to_string(), max as f32);
                     }
                 },
