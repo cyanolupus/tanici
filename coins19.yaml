@@ -175,6 +175,11 @@ groups_c:
     regtype: id
     reg: ^22.{5}$
 
+  - name: pe3
+    isCp: true
+    regtype: id
+    reg: ^23.{5}$
+
   - name: acfnd
     isCp: false
     regtype: id
@@ -201,9 +206,7 @@ reqs:
         subreqs:
         groups:
           - name: gbn0
-            max: -1.0
         min: 18.0
-        max: -1.0
     groups:
       - name: gbn
         max: 18.0
@@ -217,26 +220,19 @@ reqs:
       - desc: 確率論,統計学,数値計算法,論理と形式化,電磁気学,論理システム,論理システム演習
         groups:
           - name: misc
-            max: -1.0
         min: 10.0
-        max: -1.0
 
       - desc: Computer Science in English A or B
         groups:
           - name: cseng
-            max: -1.0
         min: 2.0
-        max: -1.0
 
       - desc: GA1
         groups:
           - name: ga1
-            max: -1.0
         min: 8.0
-        max: -1.0
     groups:
       - name: gb1
-        max: -1.0
     min: 24.0
     max: 24.0
 
@@ -247,9 +243,7 @@ reqs:
           - desc: 総合科目 (学士基盤等)
             groups:
               - name: acfnd
-                max: -1.0
             min: 1.0
-            max: -1.0
         groups:
           - name: arts
             max: 4.0
@@ -263,9 +257,7 @@ reqs:
           - desc: 文系科目
             groups:
               - name: nonsci
-                max: -1.0
             min: 6.0
-            max: -1.0
         groups:
           - name: sci
             max: 4.0

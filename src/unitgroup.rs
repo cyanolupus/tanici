@@ -62,10 +62,12 @@ impl UnitGroup {
     }
 
     fn print_units(&self, group_name: &str, verbose: bool) {
-        if self.name == "pe1" && self.units.len() < 2 {
+        if self.name == "pe1" && self.units.len() < 2 && self.is_comp {
             println!("{}/必修: \x1b[31m---\x1b[m         基礎体育", group_name);
-        } else if self.name == "pe2" && self.units.len() < 2 {
+        } else if self.name == "pe2" && self.units.len() < 2 && self.is_comp {
             println!("{}/必修: \x1b[31m---\x1b[m         応用体育", group_name);
+        } else if self.name == "pe3" && self.units.len() < 2 && self.is_comp {
+            println!("{}/必修: \x1b[31m---\x1b[m         発展体育", group_name);
         } else if self.units.len() == 0 && self.is_comp {
             println!("{}/必修: \x1b[31m---\x1b[m         {}", group_name, self.name);
         }
@@ -98,7 +100,10 @@ impl UnitGroupMap {
             Some(groups) => {
                 for group in groups.iter() {
                     let name = group["name"].as_str().unwrap();
-                    let is_comp = group["isCp"].as_bool().unwrap();
+                    let is_comp = match group["isCp"].as_bool() {
+                        Some(is_comp) => is_comp,
+                        None => false,
+                    };
                     match group["regtype"].as_str() {
                         Some("name") => {
                             let reg = group["reg"].as_str().unwrap();
@@ -115,7 +120,8 @@ impl UnitGroupMap {
                             self.groups.push(req);
                         }
                         _ => {
-                            println!("error");
+                            eprintln!("error");
+                            std::process::exit(1);
                         }
                     }
                 }
