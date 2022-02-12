@@ -99,6 +99,8 @@ fn main() {
 
             println!("GPA: {:>.4}", user.gpa);
             println!("GPΣ: {:>.1}", user.gps);
+            println!("A↑ : {:>3.1}%", user.aper * 100.0);
+            println!("A↑f: {:>3.1}%", user.aperfull * 100.0);
             std::process::exit(0);
         },
         Err(e) => {

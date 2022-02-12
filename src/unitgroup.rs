@@ -106,8 +106,11 @@ impl UnitGroupMap {
                     };
                     match group["regtype"].as_str() {
                         Some("name") => {
-                            let reg = group["reg"].as_str().unwrap();
-                            let req = UnitGroup::group_name(name, reg, is_comp);
+                            let reg = match group["reg"].as_str() {
+                                Some(reg) => reg.to_string(),
+                                None => format!("^{}$", name),
+                            };
+                            let req = UnitGroup::group_name(name, &reg, is_comp);
                             self.groups.push(req);
                         }
                         Some("id") => {

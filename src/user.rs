@@ -7,6 +7,8 @@ pub struct User {
     pub units_c0: Vec<Unit>,
     pub gpa: f32,
     pub gps: f32,
+    pub aper: f32,
+    pub aperfull: f32,
 }
 
 impl User {
@@ -24,9 +26,21 @@ impl User {
     
         let mut gps: f32 = 0.0;
         let mut unum: f32 = 0.0;
+        let mut asum: f32 = 0.0;
+        let mut asumfull: f32 = 0.0;
+        let mut unumfull: f32 = 0.0;
         for unit in units {
+            if unit.grade_num >= 0.0 {
+                if unit.grade_num >= 4.0 {
+                    asumfull += unit.unit_num;
+                }
+                unumfull += unit.unit_num;
+            }
             if unit.unit_group != "C0" && unit.grade_num >= 0.0  {
                 gps += unit.unit_num * unit.grade_num;
+                if unit.grade_num >= 4.0 {
+                    asum += unit.unit_num;
+                }
                 unum += unit.unit_num;
             }
             if unit.unit_group == "A" {
@@ -47,6 +61,8 @@ impl User {
             units_c0: units_c0,
             gpa: gps / unum,
             gps: gps,
+            aper: asum / unum,
+            aperfull: asumfull / unumfull,
         }
     }
 }
