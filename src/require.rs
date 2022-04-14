@@ -78,12 +78,15 @@ impl Req {
         println!("{}: {:>4}/{:>2}   {}", if left < right {fail} else {pass}, left, right, label);
     }
 
-    pub fn check_req(&self, sums: &HashMap<String, f32>) -> f32 {
+    pub fn check_req(&self, sums: &HashMap<String, f32>, quiet: bool) -> (f32, bool) {
         let mut result: f32 = 0.0;
+        let mut pass = true;
         match &self.subreqs {
             Some(reqs) => {
                 for req in reqs.iter() {
-                    result += req.check_req(&sums);
+                    let subresult = req.check_req(&sums, quiet);
+                    result += subresult.0;
+                    pass = pass && subresult.1;
                 }
             },
             None => {},
@@ -96,11 +99,13 @@ impl Req {
                 result += group_sum.min(*max);
             }
         }
-        Req::print_cmp(result, self.min, self.desc.as_str());
+        if !quiet {
+            Req::print_cmp(result, self.min, self.desc.as_str());
+        }
         if self.max < 0.0 {
-            return result;
+            return (result, pass && result >= self.min);
         } else {
-            return result.min(self.max);
+            return (result.min(self.max), pass && result >= self.min);
         }
     }
 }

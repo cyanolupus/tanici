@@ -133,14 +133,14 @@ impl UnitGroupMap {
         }
     }
 
-    pub fn push_units(&mut self, units: Vec<Unit>) {
+    pub fn push_units(&mut self, units: Vec<Unit>, wip: bool) {
         let mut unitscp = units;
         while unitscp.len() > 0 {
             let unit = unitscp.pop().unwrap();
             match self.groups.iter_mut().find(|req| req.check(&unit)) {
                 Some(req) => {
                     let sum: &mut f32 = self.sums.entry(req.name.clone()).or_insert(0.0);
-                    if unit.grade_num > 0.0 {
+                    if unit.grade_num > 0.0 || unit.grade_num == -1.0 || (wip && unit.grade_num == -2.0) {
                         *sum += unit.unit_num;
                     }
                     req.units.push(unit);

@@ -195,82 +195,135 @@ groups_c0:
     regtype: none
     
 reqs:
-  - desc: 専門選択
+  - desc: 合計
     subreqs:
-      - desc: GBn0
+      - desc: 必修合計
         subreqs:
-        groups:
-          - name: gbn0
-            max: -1.0
-        min: 18.0
-        max: -1.0
-    groups:
-      - name: gbn
-        max: 18.0
-    min: 36.0
-    max: 36.0
-
-  
-
-  - desc: 専門基礎選択
-    subreqs:
-      - desc: 確率論,統計学,数値計算法,論理と形式化,電磁気学,論理システム,論理システム演習
-        groups:
-          - name: misc
-            max: -1.0
-        min: 10.0
-        max: -1.0
-
-      - desc: Computer Science in English A or B
-        groups:
-          - name: cseng
-            max: -1.0
-        min: 2.0
-        max: -1.0
-
-      - desc: GA1
-        groups:
-          - name: ga1
-            max: -1.0
-        min: 8.0
-        max: -1.0
-    groups:
-      - name: gb1
-        max: -1.0
-    min: 24.0
-    max: 24.0
-
-  - desc: 基礎選択
-    subreqs:
-      - desc: 共通基礎選択
-        subreqs:
-          - desc: 総合科目 (学士基盤等)
+          - desc: 専門必修
             groups:
-              - name: acfnd
-                max: -1.0
-            min: 1.0
-            max: -1.0
-        groups:
-          - name: arts
-            max: 4.0
-        min: 1.0
-        max: 5.0
-
-      
-
-      - desc: 関連基礎選択
-        subreqs:
-          - desc: 文系科目
+              - name: 主専攻実験A
+              - name: 主専攻実験B
+              - name: 卒業研究A
+              - name: 卒業研究B
+              - name: 専門語学A
+              - name: 専門語学B
+            min: 16.0
+            max: 16.0
+          - desc: 専門基礎必修
             groups:
-              - name: nonsci
+              - name: 線形代数A
+              - name: 線形代数B
+              - name: 微分積分A
+              - name: 微分積分B
+              - name: 情報数学A
+              - name: 専門英語基礎
+              - name: プログラミング入門
+              - name: コンピュータとプログラミング
+              - name: データ構造とアルゴリズム
+              - name: データ構造とアルゴリズム実験
+              - name: 論理回路
+              - name: 論理回路実験
+            min: 26.0
+            max: 26.0
+          - desc: 共通基礎必修
+            groups:
+              - name: フレッシュマン・セミナー
+              - name: 学問への誘い
+              - name: English Reading Skills I
+              - name: English Reading Skills II
+              - name: English Presentation Skills I
+              - name: English Presentation Skills II
+              - name: 情報リテラシー(講義)
+              - name: 情報リテラシー(演習)
+              - name: データサイエンス
+              - name: pe1
+              - name: pe2
+            min: 12.0
+            max: 12.0
+        min: 54.0
+        max: 54.0
+      - desc: 選択合計
+        subreqs:
+          - desc: 専門選択
+            subreqs:
+              - desc: GBn0
+                subreqs:
+                groups:
+                  - name: gbn0
+                    max: -1.0
+                min: 18.0
                 max: -1.0
-            min: 6.0
-            max: -1.0
-        groups:
-          - name: sci
-            max: 4.0
-        min: 6.0
-        max: 10.0
-    groups:
-    min: 11.0
-    max: 11.0
+            groups:
+              - name: gbn
+                max: 18.0
+            min: 36.0
+            max: 36.0
+
+          
+
+          - desc: 専門基礎選択
+            subreqs:
+              - desc: 確率論,統計学,数値計算法,論理と形式化,電磁気学,論理システム,論理システム演習
+                groups:
+                  - name: misc
+                    max: -1.0
+                min: 10.0
+                max: -1.0
+
+              - desc: Computer Science in English A or B
+                groups:
+                  - name: cseng
+                    max: -1.0
+                min: 2.0
+                max: -1.0
+
+              - desc: GA1
+                groups:
+                  - name: ga1
+                    max: -1.0
+                min: 8.0
+                max: -1.0
+            groups:
+              - name: gb1
+                max: -1.0
+            min: 24.0
+            max: 24.0
+
+          - desc: 基礎選択
+            subreqs:
+              - desc: 共通基礎選択
+                subreqs:
+                  - desc: 総合科目 (学士基盤等)
+                    groups:
+                      - name: acfnd
+                        max: -1.0
+                    min: 1.0
+                    max: -1.0
+                groups:
+                  - name: arts
+                    max: 4.0
+                min: 1.0
+                max: 5.0
+
+              
+
+              - desc: 関連基礎選択
+                subreqs:
+                  - desc: 文系科目
+                    groups:
+                      - name: nonsci
+                        max: -1.0
+                    min: 6.0
+                    max: -1.0
+                groups:
+                  - name: sci
+                    max: 4.0
+                min: 6.0
+                max: 10.0
+            groups:
+            min: 11.0
+            max: 11.0
+        min: 71.0
+        max: 71.0
+    min: 125.0
+    max: 125.0

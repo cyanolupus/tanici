@@ -38,12 +38,21 @@ fn main() {
             .long("import")
             .help("import requirements from yaml file")
             .takes_value(true)
-            .required(true));
+            .required(true))
+        .arg(Arg::with_name("quiet")
+            .short("q")
+            .long("quiet")
+            .help("print only user data"))
+        .arg(Arg::with_name("wip")
+            .long("wip")
+            .help("count WIP units"));
     
     let matches = app.get_matches();
     let csv_path = matches.value_of("csv").unwrap();
     let yaml_path = matches.value_of("requirements").unwrap();
     let verbose: bool = matches.is_present("verbose");
+    let quiet: bool = matches.is_present("quiet");
+    let wip: bool = matches.is_present("wip");
     let mut groups_a = UnitGroupMap::new("専門    ");
     let mut groups_b = UnitGroupMap::new("専門基礎");
     let mut groups_c = UnitGroupMap::new("共通基礎");
@@ -80,21 +89,27 @@ fn main() {
         Ok(data) => {
             let user = User::new(data);
             println!("start checking your graduation possibility");
-            groups_a.push_units(user.units_a);
-            groups_b.push_units(user.units_b);
-            groups_c.push_units(user.units_c);
-            groups_c0.push_units(user.units_c0);
-            groups_a.print(verbose);
-            groups_b.print(verbose);
-            groups_c.print(verbose);
-            groups_c0.print(verbose);
+            groups_a.push_units(user.units_a, wip);
+            groups_b.push_units(user.units_b, wip);
+            groups_c.push_units(user.units_c, wip);
+            groups_c0.push_units(user.units_c0, wip);
+            if !quiet {
+                groups_a.print(verbose);
+                groups_b.print(verbose);
+                groups_c.print(verbose);
+                groups_c0.print(verbose);
+            }
             sums.extend(groups_a.sums);
             sums.extend(groups_b.sums);
             sums.extend(groups_c.sums);
             sums.extend(groups_c0.sums);
 
             for req in reqs {
-                req.check_req(&sums);
+                if req.check_req(&sums, quiet).1 {
+                    println!("卒業可能");
+                } else {
+                    println!("卒業不可能");
+                }
             }
 
             println!("GPA: {:>.4}", user.gpa);
